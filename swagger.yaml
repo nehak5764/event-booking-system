@@ -1,0 +1,321 @@
+openapi: 3.0.3
+info:
+  title: Event Booking System API
+  description: A Mini Event Management System where users can browse events and book tickets.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+
+paths:
+
+  /events:
+    get:
+      summary: List all upcoming events
+      operationId: getEvents
+      responses:
+        '200':
+          description: A list of upcoming events
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  events:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Event'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    post:
+      summary: Create a new event
+      operationId: createEvent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEventRequest'
+      responses:
+        '201':
+          description: Event created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Event created successfully
+                  eventId:
+                    type: integer
+                    example: 3
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /bookings:
+    post:
+      summary: Book a ticket for a user
+      operationId: createBooking
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBookingRequest'
+      responses:
+        '201':
+          description: Booking confirmed with unique confirmation code
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Booking confirmed
+                  confirmation_code:
+                    type: string
+                    example: A3F9C12E1B
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Conflict - No tickets remaining or duplicate booking
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                noTickets:
+                  value:
+                    error: No tickets remaining for this event
+                duplicate:
+                  value:
+                    error: User has already booked this event
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /users/{id}/bookings:
+    get:
+      summary: Retrieve all bookings made by a specific user
+      operationId: getUserBookings
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The user's ID
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: List of bookings for the user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user_id:
+                    type: integer
+                    example: 1
+                  bookings:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BookingWithEvent'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /events/{id}/attendance:
+    post:
+      summary: Record attendance using a confirmation code
+      operationId: recordAttendance
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The event's ID
+          schema:
+            type: integer
+            example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AttendanceRequest'
+      responses:
+        '201':
+          description: Attendance recorded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Attendance recorded
+                  event_id:
+                    type: integer
+                    example: 1
+                  total_tickets_booked:
+                    type: integer
+                    example: 15
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+components:
+  schemas:
+
+    Event:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: Node.js Workshop
+        description:
+          type: string
+          example: An intro to Node.js and Express
+        date:
+          type: string
+          format: date-time
+          example: '2025-08-15T10:00:00.000Z'
+        total_capacity:
+          type: integer
+          example: 50
+        remaining_tickets:
+          type: integer
+          example: 42
+        created_at:
+          type: string
+          format: date-time
+
+    CreateEventRequest:
+      type: object
+      required:
+        - title
+        - date
+        - capacity
+      properties:
+        title:
+          type: string
+          example: Node.js Workshop
+        description:
+          type: string
+          example: An intro to Node.js and Express
+        date:
+          type: string
+          format: date-time
+          example: '2025-08-15T10:00:00Z'
+        capacity:
+          type: integer
+          minimum: 1
+          example: 50
+
+    CreateBookingRequest:
+      type: object
+      required:
+        - user_id
+        - event_id
+      properties:
+        user_id:
+          type: integer
+          example: 1
+        event_id:
+          type: integer
+          example: 1
+
+    BookingWithEvent:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 5
+        confirmation_code:
+          type: string
+          example: A3F9C12E1B
+        booking_date:
+          type: string
+          format: date-time
+        title:
+          type: string
+          example: Node.js Workshop
+        date:
+          type: string
+          format: date-time
+        description:
+          type: string
+
+    AttendanceRequest:
+      type: object
+      required:
+        - confirmation_code
+      properties:
+        confirmation_code:
+          type: string
+          example: A3F9C12E1B
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Internal server error
+
+    ValidationErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Validation failed
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              msg:
+                type: string
+              path:
+                type: string
+
+  responses:
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: Internal server error
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: Event not found
+
+    ValidationError:
+      description: Request validation failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationErrorResponse'
