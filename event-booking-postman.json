@@ -1,0 +1,51 @@
+{
+	"info": {
+		"_postman_id": "5815f201-bb03-4ef8-bc0f-fbbf7ff749e3",
+		"name": "Event Booking System",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "45865452",
+		"_collection_link": "https://neha-8304685.postman.co/workspace/neha's-Workspace~90e7e9ae-5296-4fa4-8b8b-0ef1fb91d9fb/collection/45865452-5815f201-bb03-4ef8-bc0f-fbbf7ff749e3?action=share&source=collection_link&creator=45865452"
+	},
+	"item": [
+		{
+			"name": "Get All Events",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "Create Event",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "Create Booking",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "Get User Bookings",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "Record Attendance",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		}
+	]
+}
